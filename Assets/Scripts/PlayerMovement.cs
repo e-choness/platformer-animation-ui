@@ -1,20 +1,28 @@
-using System;
-using Unity.VisualScripting;
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
+    private enum MovementState
+    {
+        Idle,
+        Running,
+        Jumping,
+        Falling
+    }
+    
     private InputControls _inputControls;
     private Rigidbody2D _rigidbody2D;
     private Animator _animator;
     private SpriteRenderer _spriteRenderer;
     private Vector2 _moveVector;
-    [SerializeField] private float jumpVelocity = 20.0f;
+    [SerializeField] private float jumpForce = 20.0f;
     [SerializeField] private float moveSpeed = 1.0f;
-    private static readonly int _isRunning = Animator.StringToHash("isRunning");
+    private static readonly int MovingState = Animator.StringToHash("State");
     private bool _isGrounded;
     
+
     private void Awake()
     {
         _inputControls = new InputControls();
@@ -23,6 +31,7 @@ public class PlayerMovement : MonoBehaviour
         _inputControls.Player.Move.performed += context => _moveVector = context.ReadValue<Vector2>();
         _inputControls.Player.Move.canceled += context => _moveVector = Vector2.zero;
 
+        // _movementState = MovementSate.Idle;
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
@@ -46,38 +55,68 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnJumpPerformed()
     {
+        _rigidbody2D.velocity = new Vector2(_rigidbody2D.velocity.x, jumpForce);
+
 #if UNITY_EDITOR
         Debug.Log("OnJumpPerformed");
 #endif
-        if(_isGrounded)
-            _rigidbody2D.AddForce(Vector2.up * jumpVelocity);
+        
     }
 
     private void OnMovePerformed()
     {
-        var movement = new Vector3(_moveVector.x, 0.0f, _moveVector.y) * (moveSpeed * Time.fixedDeltaTime);
 
-        transform.Translate(movement);
-        if (movement.x == 0)
+        _rigidbody2D.velocity = new(_moveVector.x * moveSpeed, _rigidbody2D.velocity.y);
+        if (_moveVector.x == 0)
         {
-            _animator.SetBool(_isRunning, false);
+            if(_isGrounded)
+                UpdateAnimation(MovementState.Idle);
         }
-        else if(movement.x > 0)
+        else if(_moveVector.x > 0)
         {
-            _animator.SetBool(_isRunning, true);
+            if(_isGrounded)
+                UpdateAnimation(MovementState.Running);
             _spriteRenderer.flipX = false;
         }
         else
         {
-            _animator.SetBool(_isRunning, true);
+            if(_isGrounded)
+                UpdateAnimation(MovementState.Running);
             _spriteRenderer.flipX = true;
         }
-#if UNITY_EDITOR
-        if (movement.x != 0)
+
+        if (!_isGrounded)
         {
-            Debug.Log($"Movement: {movement.x.ToString()} {movement.y.ToString()}");
+            UpdateAnimation(_rigidbody2D.velocity.y > 0.1f ? MovementState.Jumping : MovementState.Falling);
+        }
+            
+#if UNITY_EDITOR
+        if (_moveVector.x != 0)
+        {
+            Debug.Log($"Movement: {_moveVector.x.ToString()} {_moveVector.y.ToString()}");
         }        
 #endif
+    }
+
+    private void UpdateAnimation(MovementState state)
+    {
+        switch (state)
+        {
+            case MovementState.Idle:
+                _animator.SetInteger(MovingState, (int)state);
+                break;    
+            case MovementState.Running:
+                _animator.SetInteger(MovingState, (int)state);
+                break;
+            case MovementState.Jumping:
+                _animator.SetInteger(MovingState, (int)state);
+                break;
+            case MovementState.Falling:
+                _animator.SetInteger(MovingState, (int)state);
+                break;
+            default:
+                break;
+        }
     }
 
     private void OnJumpCanceled()
