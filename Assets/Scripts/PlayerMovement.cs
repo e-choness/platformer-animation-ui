@@ -1,6 +1,4 @@
-
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -13,16 +11,18 @@ public class PlayerMovement : MonoBehaviour
     }
     
     private InputControls _inputControls;
+    private BoxCollider2D _boxCollider2D;
     private Rigidbody2D _rigidbody2D;
     private Animator _animator;
     private SpriteRenderer _spriteRenderer;
     private Vector2 _moveVector;
+    [SerializeField] private LayerMask jumpableGround;
+    [SerializeField] private ContactFilter2D contactFilter;
     [SerializeField] private float jumpForce = 20.0f;
     [SerializeField] private float moveSpeed = 1.0f;
     private static readonly int MovingState = Animator.StringToHash("State");
-    private bool _isGrounded;
+    private bool IsGrounded => _rigidbody2D.IsTouching(contactFilter);
     
-
     private void Awake()
     {
         _inputControls = new InputControls();
@@ -32,6 +32,7 @@ public class PlayerMovement : MonoBehaviour
         _inputControls.Player.Move.canceled += context => _moveVector = Vector2.zero;
 
         // _movementState = MovementSate.Idle;
+        _boxCollider2D = GetComponent<BoxCollider2D>();
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
@@ -55,7 +56,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnJumpPerformed()
     {
-        _rigidbody2D.velocity = new Vector2(_rigidbody2D.velocity.x, jumpForce);
+        if(IsGrounded)
+            _rigidbody2D.velocity = new Vector2(_rigidbody2D.velocity.x, jumpForce);
 
 #if UNITY_EDITOR
         Debug.Log("OnJumpPerformed");
@@ -69,23 +71,23 @@ public class PlayerMovement : MonoBehaviour
         _rigidbody2D.velocity = new(_moveVector.x * moveSpeed, _rigidbody2D.velocity.y);
         if (_moveVector.x == 0)
         {
-            if(_isGrounded)
+            if(IsGrounded)
                 UpdateAnimation(MovementState.Idle);
         }
         else if(_moveVector.x > 0)
         {
-            if(_isGrounded)
+            if(IsGrounded)
                 UpdateAnimation(MovementState.Running);
             _spriteRenderer.flipX = false;
         }
         else
         {
-            if(_isGrounded)
+            if(IsGrounded)
                 UpdateAnimation(MovementState.Running);
             _spriteRenderer.flipX = true;
         }
 
-        if (!_isGrounded)
+        if (!IsGrounded)
         {
             UpdateAnimation(_rigidbody2D.velocity.y > 0.1f ? MovementState.Jumping : MovementState.Falling);
         }
@@ -96,6 +98,11 @@ public class PlayerMovement : MonoBehaviour
             Debug.Log($"Movement: {_moveVector.x.ToString()} {_moveVector.y.ToString()}");
         }        
 #endif
+    }
+    
+    private void OnJumpCanceled()
+    {
+        _rigidbody2D.AddForce(Vector2.zero);
     }
 
     private void UpdateAnimation(MovementState state)
@@ -116,27 +123,6 @@ public class PlayerMovement : MonoBehaviour
                 break;
             default:
                 break;
-        }
-    }
-
-    private void OnJumpCanceled()
-    {
-        _rigidbody2D.AddForce(Vector2.zero);
-    }
-
-    private void OnCollisionEnter2D(Collision2D other)
-    {
-        if (other.gameObject.CompareTag("Terrian"))
-        {
-            _isGrounded = true;
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D other)
-    {
-        if (other.gameObject.CompareTag("Terrian"))
-        {
-            _isGrounded = false;
         }
     }
 }
