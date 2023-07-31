@@ -295,6 +295,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49039899e3e672b499f662e3f7fd26d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  jumpableGround:
+    serializedVersion: 2
+    m_Bits: 64
+  contactFilter:
+    useTriggers: 0
+    useLayerMask: 1
+    useDepth: 0
+    useOutsideDepth: 0
+    useNormalAngle: 0
+    useOutsideNormalAngle: 0
+    layerMask:
+      serializedVersion: 2
+      m_Bits: 64
+    minDepth: 0
+    maxDepth: 0
+    minNormalAngle: 0
+    maxNormalAngle: 0
   jumpForce: 15
   moveSpeed: 8
 --- !u!95 &466467723
@@ -9002,7 +9019,8 @@ GameObject:
   - component: {fileID: 1396057644}
   - component: {fileID: 1396057646}
   - component: {fileID: 1396057645}
-  m_Layer: 0
+  - component: {fileID: 1396057647}
+  m_Layer: 6
   m_Name: Terrian
   m_TagString: Terrian
   m_Icon: {fileID: 0}
@@ -10116,6 +10134,25 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!251 &1396057647
+PlatformEffector2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1396057639}
+  m_Enabled: 1
+  m_UseColliderMask: 1
+  m_ColliderMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RotationalOffset: 0
+  m_UseOneWay: 0
+  m_UseOneWayGrouping: 0
+  m_SurfaceArc: 180
+  m_UseSideFriction: 0
+  m_UseSideBounce: 0
+  m_SideArc: 1
 --- !u!1 &2115573193
 GameObject:
   m_ObjectHideFlags: 0
