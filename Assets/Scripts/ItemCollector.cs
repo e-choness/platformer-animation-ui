@@ -1,18 +1,16 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ItemCollector : MonoBehaviour
 {
-    private int _cherries = 0;
+    private int _cherries;
+    [SerializeField] private AudioSource collectingSoundEffect;
     [SerializeField] private TextMeshProUGUI text;
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.CompareTag("Collectable"))
         {
+            collectingSoundEffect.Play();
             Destroy(other.gameObject);
             _cherries++;
             text.text = $"Cherries Count: {_cherries.ToString()}";
